@@ -14,9 +14,7 @@ with FreeSpecPathGenerator with FunSpecGenerator with FunSuiteGenerator with Pro
   def checkSelection(lineNumber: Int, offset: Int, fileName: String, testNames: Set[String]) = {
     val location = createLocation(lineNumber, offset, fileName)
     var selection: Selection = null
-    UsefulTestCase.edt(new Runnable(){
-      override def run(): Unit = selection = new ScalaTestAstTransformer().testSelection(location)
-    })
+    UsefulTestCase.edt(() => selection = new ScalaTestAstTransformer().testSelection(location))
     assert(selection != null)
     assert(selection.testNames().map(_.trim).toSet == testNames)
   }

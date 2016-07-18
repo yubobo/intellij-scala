@@ -422,32 +422,20 @@ package object extensions {
 
   import scala.language.implicitConversions
 
-  implicit def toIdeaFunction[A, B](f: Function[A, B]): com.intellij.util.Function[A, B] = new com.intellij.util.Function[A, B] {
-    override def fun(param: A): B = f(param)
-  }
+  implicit def toIdeaFunction[A, B](f: Function[A, B]): com.intellij.util.Function[A, B] = (param: A) => f(param)
 
-  implicit def toProcessor[T](action: T => Boolean): Processor[T] = new Processor[T] {
-    override def process(t: T): Boolean = action(t)
-  }
+  implicit def toProcessor[T](action: T => Boolean): Processor[T] = (t: T) => action(t)
 
-  implicit def toRunnable(action: => Any): Runnable = new Runnable {
-    override def run(): Unit = action
-  }
+  implicit def toRunnable(action: => Any): Runnable = () => action
 
-  implicit def toComputable[T](action: => T): Computable[T] = new Computable[T] {
-    override def compute(): T = action
-  }
+  implicit def toComputable[T](action: => T): Computable[T] = () => action
 
-  implicit def toCallable[T](action: => T): Callable[T] = new Callable[T] {
-    override def call(): T = action
-  }
+  implicit def toCallable[T](action: => T): Callable[T] = () => action
   
   def startCommand(project: Project, commandName: String)(body: => Unit): Unit = {
-    CommandProcessor.getInstance.executeCommand(project, new Runnable {
-      def run() {
-        inWriteAction {
-          body
-        }
+    CommandProcessor.getInstance.executeCommand(project, () => {
+      inWriteAction {
+        body
       }
     }, commandName, null)
   }
@@ -517,33 +505,25 @@ package object extensions {
   }
 
   def postponeFormattingWithin[T](project: Project)(body: => T): T = {
-    PostprocessReformattingAspect.getInstance(project).postponeFormattingInside(new Computable[T]{
-      def compute(): T = body
-    })
+    PostprocessReformattingAspect.getInstance(project).postponeFormattingInside(() => body)
   }
 
   def withDisabledPostprocessFormatting[T](project: Project)(body: => T): T = {
     PostprocessReformattingAspect.getInstance(project).disablePostprocessFormattingInside {
-      new Computable[T] {
-        override def compute(): T = body
-      }
+      () => body
     }
   }
 
   def invokeLater[T](body: => T) {
-    ApplicationManager.getApplication.invokeLater(new Runnable {
-      def run() {
-        body
-      }
+    ApplicationManager.getApplication.invokeLater(() => {
+      body
     })
   }
 
   def invokeAndWait[T](body: => Unit) {
     preservingControlFlow {
-      SwingUtilities.invokeAndWait(new Runnable {
-        def run() {
-          body
-        }
+      SwingUtilities.invokeAndWait(() => {
+        body
       })
     }
   }

@@ -1,9 +1,6 @@
 package org.jetbrains.plugins.scala.testingSupport
 
 import java.util.regex.{Matcher, Pattern}
-
-import com.intellij.testFramework.UsefulTestCase
-import com.intellij.util.concurrency.Semaphore
 import javax.swing.SwingUtilities
 
 import com.intellij.execution.testframework.AbstractTestProxy
@@ -13,6 +10,8 @@ import com.intellij.ide.util.treeView.smartTree.{TreeElement, TreeElementWrapper
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.{PsiDocumentManager, PsiElement}
+import com.intellij.testFramework.UsefulTestCase
+import com.intellij.util.concurrency.Semaphore
 import org.jetbrains.plugins.scala.lang.structureView.elements.impl.TestStructureViewElement
 import org.jetbrains.plugins.scala.lang.structureView.itemsPresentations.impl.TestItemRepresentation
 import org.jetbrains.plugins.scala.testingSupport.test.AbstractTestRunConfiguration
@@ -61,9 +60,7 @@ trait IntegrationTest {
 
     var res = false
 
-    UsefulTestCase.edt(new Runnable() {
-      override def run(): Unit = res = helper(root, "")
-    })
+    UsefulTestCase.edt(() => res = helper(root, ""))
     res
   }
 
@@ -162,10 +159,8 @@ trait IntegrationTest {
     val semaphore = new Semaphore
     semaphore.down()
 
-    SwingUtilities.invokeLater(new Runnable() {
-      override def run(): Unit = {
-        semaphore.up()
-      }
+    SwingUtilities.invokeLater(() => {
+      semaphore.up()
     })
 
     semaphore.waitFor()
@@ -197,9 +192,7 @@ trait IntegrationTest {
     val (_, testTreeRoot) = runTestFromConfig(configurationCheck, runConfig)
 
     assert(testTreeRoot.isDefined)
-    UsefulTestCase.edt(new Runnable() {
-      override def run(): Unit = checkGoToSourceTest(testTreeRoot.get, testNames, fileName, sourceLine)
-    })
+    UsefulTestCase.edt(() => checkGoToSourceTest(testTreeRoot.get, testNames, fileName, sourceLine))
   }
 
   private def checkGoToSourceTest(testRoot: AbstractTestProxy, testNames: Iterable[String], sourceFile: String, sourceLine: Int) {

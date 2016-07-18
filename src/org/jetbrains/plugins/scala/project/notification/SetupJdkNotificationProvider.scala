@@ -6,13 +6,13 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
-import com.intellij.openapi.roots.{ModuleRootEvent, ModuleRootAdapter, ModuleRootManager, ModuleRootModificationUtil}
+import com.intellij.openapi.roots.{ModuleRootAdapter, ModuleRootEvent, ModuleRootManager, ModuleRootModificationUtil}
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.{PsiFile, PsiManager}
 import com.intellij.ui.{EditorNotificationPanel, EditorNotifications}
-import org.jetbrains.plugins.scala.project.notification.SetupJdkNotificationProvider._
 import org.jetbrains.plugins.scala.extensions._
+import org.jetbrains.plugins.scala.project.notification.SetupJdkNotificationProvider._
 
 /**
  * @author Pavel Fatin
@@ -44,10 +44,8 @@ object SetupJdkNotificationProvider {
   private def createPanel(project: Project, file: PsiFile): EditorNotificationPanel = {
     val panel = new EditorNotificationPanel()
     panel.setText("Project JDK is not defined")
-    panel.createActionLabel("Setup JDK", new Runnable {
-      override def run() {
-        setupSdk(project, file)
-      }
+    panel.createActionLabel("Setup JDK", () => {
+      setupSdk(project, file)
     })
     panel
   }

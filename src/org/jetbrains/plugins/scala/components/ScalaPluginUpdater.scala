@@ -218,10 +218,12 @@ object ScalaPluginUpdater {
     val appSettings = ScalaApplicationSettings.getInstance()
     def getPlatformUpdateResult = {
       val a = ApplicationInfoEx.getInstanceEx.getUpdateUrls.getCheckingUrl
-      val info = HttpRequests.request(a).connect(new HttpRequests.RequestProcessor[Option[UpdatesInfo]] {
-        def process(request: HttpRequests.Request): Option[UpdatesInfo] = {
-          try { Some(new UpdatesInfo(JDOMUtil.loadDocument(request.getInputStream).detachRootElement)) }
-          catch { case e: JDOMException => LOG.info(e); None }
+      val info = HttpRequests.request(a).connect((request: HttpRequests.Request) => {
+        try {
+          Some(new UpdatesInfo(JDOMUtil.loadDocument(request.getInputStream).detachRootElement))
+        }
+        catch {
+          case e: JDOMException => LOG.info(e); None
         }
       })
       if(info.isDefined) {
@@ -246,14 +248,12 @@ object ScalaPluginUpdater {
           "Scala Plugin Update Failed",
           message,
           NotificationType.WARNING,
-          new NotificationListener {
-            override def hyperlinkUpdate(notification: Notification, event: HyperlinkEvent): Unit = {
-              notification.expire()
-              event.getDescription match {
-                case "No" => // do nothing, will ask next time
-                case "Yes" => UpdateSettings.getInstance().setUpdateChannelType("eap")
-                case "Ignore" => appSettings.ASK_PLATFORM_UPDATE = false
-              }
+          (notification: Notification, event: HyperlinkEvent) => {
+            notification.expire()
+            event.getDescription match {
+              case "No" => // do nothing, will ask next time
+              case "Yes" => UpdateSettings.getInstance().setUpdateChannelType("eap")
+              case "Ignore" => appSettings.ASK_PLATFORM_UPDATE = false
             }
           }
         ))
@@ -282,9 +282,7 @@ object ScalaPluginUpdater {
           PropertiesComponent.getInstance().setValue(key, System.currentTimeMillis().toString)
           doneUpdating = true
           try {
-            HttpRequests.request(url).connect(new HttpRequests.RequestProcessor[Unit] {
-              override def process(request: Request): Unit = JDOMUtil.load(request.getReader())
-            })
+            HttpRequests.request(url).connect((request: Request) => JDOMUtil.load(request.getReader()))
           } catch {
             case e: Throwable => LOG.warn(e)
           }
@@ -352,16 +350,14 @@ object ScalaPluginUpdater {
       val message = "Please select Scala plugin update channel:" +
         s"""<p/><a href="EAP">EAP</a>\n""" +
         s"""<p/><a href="Release">Release</a>"""
-      val notification = new Notification(updGroupId, "Scala Plugin Update", message, NotificationType.INFORMATION, new NotificationListener {
-        def hyperlinkUpdate(notification: Notification, event: HyperlinkEvent) {
-          notification.expire()
-          applicationSettings.ASK_USE_LATEST_PLUGIN_BUILDS = false
-          event.getDescription match {
-            case "EAP"     => doUpdatePluginHostsAndCheck(EAP)
-            case "Nightly" => doUpdatePluginHostsAndCheck(Nightly)
-            case "Release" => doUpdatePluginHostsAndCheck(Release)
-            case _         => applicationSettings.ASK_USE_LATEST_PLUGIN_BUILDS = true
-          }
+      val notification = new Notification(updGroupId, "Scala Plugin Update", message, NotificationType.INFORMATION, (notification: Notification, event: HyperlinkEvent) => {
+        notification.expire()
+        applicationSettings.ASK_USE_LATEST_PLUGIN_BUILDS = false
+        event.getDescription match {
+          case "EAP" => doUpdatePluginHostsAndCheck(EAP)
+          case "Nightly" => doUpdatePluginHostsAndCheck(Nightly)
+          case "Release" => doUpdatePluginHostsAndCheck(Release)
+          case _ => applicationSettings.ASK_USE_LATEST_PLUGIN_BUILDS = true
         }
       })
       Notifications.Bus.notify(notification)

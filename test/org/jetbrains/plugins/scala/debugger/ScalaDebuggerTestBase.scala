@@ -42,14 +42,11 @@ abstract class ScalaDebuggerTestBase extends ScalaCompilerTestBase {
       if (testDataProjectPath.exists()) FileUtil.delete(testDataProjectPath)
     }
 
-    UsefulTestCase.edt(new Runnable {
-
-      def run() {
-        ScalaDebuggerTestBase.super.setUp()
-        checkOrAddAllSourceFiles()
-        addScalaSdk()
-        addOtherLibraries()
-      }
+    UsefulTestCase.edt(() => {
+      ScalaDebuggerTestBase.super.setUp()
+      checkOrAddAllSourceFiles()
+      addScalaSdk()
+      addOtherLibraries()
     })
   }
 

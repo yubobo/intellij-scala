@@ -51,10 +51,8 @@ object SetupScalaSdkNotificationProvider {
   private def createPanel(project: Project, file: PsiFile): EditorNotificationPanel = {
     val panel = new EditorNotificationPanel()
     panel.setText("No Scala SDK in module")
-    panel.createActionLabel("Setup Scala SDK", new Runnable {
-      override def run() {
-        setupSdk(panel, project, file)
-      }
+    panel.createActionLabel("Setup Scala SDK", () => {
+      setupSdk(panel, project, file)
     })
     panel
   }

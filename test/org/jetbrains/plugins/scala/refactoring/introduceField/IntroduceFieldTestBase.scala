@@ -76,11 +76,9 @@ abstract class IntroduceFieldTestBase() extends ScalaLightPlatformCodeInsightTes
       settings.name = "i"
       settings.explicitType = true
       settings.scType = StdType.QualNameToType("scala.Int")
-      ScalaUtils.runWriteActionDoNotRequestConfirmation(new Runnable {
-        def run() {
-          handler.runRefactoring(ifc, settings)
-          UsefulTestCase.doPostponedFormatting(getProjectAdapter)
-        }
+      ScalaUtils.runWriteActionDoNotRequestConfirmation(() => {
+        handler.runRefactoring(ifc, settings)
+        UsefulTestCase.doPostponedFormatting(getProjectAdapter)
       }, getProjectAdapter, "Test")
       res = scalaFile.getText.substring(0, lastPsi.getTextOffset).trim
     }

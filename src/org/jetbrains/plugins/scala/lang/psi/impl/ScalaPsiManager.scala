@@ -385,11 +385,9 @@ object ScalaPsiManager {
   }
 
   private def registerLowMemoryWatcher(project: Project) = {
-    LowMemoryWatcher.register(new Runnable {
-      def run(): Unit = {
-        val manager = ScalaPsiManager.instance(project)
-        manager.clearOnLowMemory()
-      }
+    LowMemoryWatcher.register(() => {
+      val manager = ScalaPsiManager.instance(project)
+      manager.clearOnLowMemory()
     }, project)
   }
 }

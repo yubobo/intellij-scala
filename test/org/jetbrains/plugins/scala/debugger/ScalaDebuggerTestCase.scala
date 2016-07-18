@@ -8,7 +8,6 @@ import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.debugger.engine._
 import com.intellij.debugger.engine.evaluation._
 import com.intellij.debugger.engine.evaluation.expression.EvaluatorBuilder
-import com.intellij.debugger.engine.events.DebuggerContextCommandImpl
 import com.intellij.debugger.impl._
 import com.intellij.execution.Executor
 import com.intellij.execution.application.{ApplicationConfiguration, ApplicationConfigurationType}
@@ -48,21 +47,21 @@ abstract class ScalaDebuggerTestCase extends ScalaDebuggerTestBase {
 
   protected def runDebugger(mainClass: String = mainClassName, debug: Boolean = false)(callback: => Unit) {
     var processHandler: ProcessHandler = null
-    UsefulTestCase.edt(new Runnable {
-      def run() {
-        if (needMake) {
-          make()
-          saveChecksums()
-        }
-        addBreakpoints()
-        val runner = ProgramRunner.PROGRAM_RUNNER_EP.getExtensions.find { _.getClass == classOf[GenericDebuggerRunner] }.get
-        processHandler = runProcess(mainClass, getModule, classOf[DefaultDebugExecutor], new ProcessAdapter {
-          override def onTextAvailable(event: ProcessEvent, outputType: Key[_]) {
-            val text = event.getText
-            if (debug) print(text)
-          }
-        }, runner)
+    UsefulTestCase.edt(() => {
+      if (needMake) {
+        make()
+        saveChecksums()
       }
+      addBreakpoints()
+      val runner = ProgramRunner.PROGRAM_RUNNER_EP.getExtensions.find {
+        _.getClass == classOf[GenericDebuggerRunner]
+      }.get
+      processHandler = runProcess(mainClass, getModule, classOf[DefaultDebugExecutor], new ProcessAdapter {
+        override def onTextAvailable(event: ProcessEvent, outputType: Key[_]) {
+          val text = event.getText
+          if (debug) print(text)
+        }
+      }, runner)
     })
     callback
     clearXBreakpoints()
@@ -84,14 +83,12 @@ abstract class ScalaDebuggerTestCase extends ScalaDebuggerTestBase {
     val semaphore: Semaphore = new Semaphore
     semaphore.down()
     val processHandler: AtomicReference[ProcessHandler] = new AtomicReference[ProcessHandler]
-    runner.execute(executionEnvironmentBuilder.build, new ProgramRunner.Callback {
-      def processStarted(descriptor: RunContentDescriptor) {
-        val handler: ProcessHandler = descriptor.getProcessHandler
-        assert(handler != null)
-        handler.addProcessListener(listener)
-        processHandler.set(handler)
-        semaphore.up()
-      }
+    runner.execute(executionEnvironmentBuilder.build, (descriptor: RunContentDescriptor) => {
+      val handler: ProcessHandler = descriptor.getProcessHandler
+      assert(handler != null)
+      handler.addProcessListener(listener)
+      processHandler.set(handler)
+      semaphore.up()
     })
     semaphore.waitFor()
     processHandler.get
@@ -131,12 +128,10 @@ abstract class ScalaDebuggerTestCase extends ScalaDebuggerTestBase {
   }
 
   private def clearXBreakpoints(): Unit = {
-    UsefulTestCase.edt(new Runnable {
-      def run() {
-        val xBreakpointManager = XDebuggerManager.getInstance(getProject).getBreakpointManager
-        inWriteAction {
-          xBreakpointManager.getAllBreakpoints.foreach(xBreakpointManager.removeBreakpoint)
-        }
+    UsefulTestCase.edt(() => {
+      val xBreakpointManager = XDebuggerManager.getInstance(getProject).getBreakpointManager
+      inWriteAction {
+        xBreakpointManager.getAllBreakpoints.foreach(xBreakpointManager.removeBreakpoint)
       }
     })
   }
@@ -170,11 +165,9 @@ abstract class ScalaDebuggerTestCase extends ScalaDebuggerTestBase {
     def ctx = DebuggerContextUtil.createDebuggerContext(getDebugSession, suspendContext)
     val semaphore = new Semaphore()
     semaphore.down()
-    getDebugProcess.getManagerThread.invokeAndWait(new DebuggerContextCommandImpl(ctx) {
-      override def threadAction() {
-        result = callback
-        semaphore.up()
-      }
+    getDebugProcess.getManagerThread.invokeAndWait(() => {
+      result = callback
+      semaphore.up()
     })
     def finished = semaphore.waitFor(20000)
     assert(finished, "Too long debugger action")

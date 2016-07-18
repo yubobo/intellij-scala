@@ -50,14 +50,11 @@ class ScalaStructureViewModel(private val myRootElement: ScalaFile, private val 
     res(0) = new Sorter() {
       override def isVisible: Boolean = true
 
-      override def getComparator: Comparator[_] = new Comparator[AnyRef] {
-        override def compare(o1: AnyRef, o2: AnyRef): Int =
-          (o1, o2) match {
-            case (test1: TestStructureViewElement, test2: TestStructureViewElement) => 0
-            case (_, test: TestStructureViewElement) => -1
-            case (test: TestStructureViewElement, _) => 1
-            case _ => SorterUtil.getStringPresentation(o1).compareToIgnoreCase(SorterUtil.getStringPresentation(o2))
-          }
+      override def getComparator: Comparator[_] = (o1: AnyRef, o2: AnyRef) => (o1, o2) match {
+        case (test1: TestStructureViewElement, test2: TestStructureViewElement) => 0
+        case (_, test: TestStructureViewElement) => -1
+        case (test: TestStructureViewElement, _) => 1
+        case _ => SorterUtil.getStringPresentation(o1).compareToIgnoreCase(SorterUtil.getStringPresentation(o2))
       }
 
       override def getName: String = "ALPHA_SORTER_IGNORING_TEST_NODES"

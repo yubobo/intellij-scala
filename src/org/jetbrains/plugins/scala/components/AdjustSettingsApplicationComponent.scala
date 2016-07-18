@@ -105,10 +105,8 @@ class AdjustSettingsApplicationComponent extends ApplicationComponent {
       } catch {
         case n: NumberFormatException => //do nothing
       } finally {
-        SwingUtilities.invokeLater(new Runnable {
-          override def run(): Unit = {
-            ApplicationManager.getApplication.restart()
-          }
+        SwingUtilities.invokeLater(() => {
+          ApplicationManager.getApplication.restart()
         })
         super.doOKAction() //close OK dialog
       }

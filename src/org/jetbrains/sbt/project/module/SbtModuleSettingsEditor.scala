@@ -1,7 +1,7 @@
 package org.jetbrains.sbt
 package project.module
 
-import java.awt.event.{ActionEvent, ActionListener}
+import java.awt.event.ActionEvent
 import java.util
 import javax.swing.JPanel
 import javax.swing.table.AbstractTableModel
@@ -35,12 +35,10 @@ class SbtModuleSettingsEditor (state: ModuleConfigurationState) extends ModuleEl
     myForm.sbtImportsList.setEmptyText(SbtBundle("sbt.settings.noImplicitImportsFound"))
     JListCompatibility.setModel(myForm.sbtImportsList, modelWrapper.getModelRaw)
 
-    myForm.updateButton.addActionListener(new ActionListener {
-      override def actionPerformed(e: ActionEvent): Unit = {
-        val resolversToUpdate: Seq[SbtResolver] =
-          myForm.resolversTable.getSelectedRows map (resolvers(_))
-        SbtResolverIndexesManager().update(resolversToUpdate)
-      }
+    myForm.updateButton.addActionListener((e: ActionEvent) => {
+      val resolversToUpdate: Seq[SbtResolver] =
+        myForm.resolversTable.getSelectedRows map (resolvers(_))
+      SbtResolverIndexesManager().update(resolversToUpdate)
     })
 
     myForm.mainPanel

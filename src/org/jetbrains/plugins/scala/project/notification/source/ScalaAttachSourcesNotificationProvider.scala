@@ -76,10 +76,8 @@ class ScalaAttachSourcesNotificationProvider(myProject: Project, notifications: 
         }
       }
     }
-    Collections.sort(actions, new Comparator[AttachSourcesProvider.AttachSourcesAction] {
-      def compare(o1: AttachSourcesProvider.AttachSourcesAction, o2: AttachSourcesProvider.AttachSourcesAction): Int = {
-        o1.getName.compareToIgnoreCase(o2.getName)
-      }
+    Collections.sort(actions, (o1: AttachSourcesProvider.AttachSourcesAction, o2: AttachSourcesProvider.AttachSourcesAction) => {
+      o1.getName.compareToIgnoreCase(o2.getName)
     })
 
     actions.add(defaultAction)
@@ -94,14 +92,10 @@ class ScalaAttachSourcesNotificationProvider(myProject: Project, notifications: 
             return
           }
           panel.setText(each.getBusyText)
-          val onFinish: Runnable = new Runnable {
-            def run() {
-              SwingUtilities.invokeLater(new Runnable {
-                def run() {
-                  panel.setText(ScalaBundle.message("library.sources.not.found"))
-                }
-              })
-            }
+          val onFinish: Runnable = () => {
+            SwingUtilities.invokeLater(() => {
+              panel.setText(ScalaBundle.message("library.sources.not.found"))
+            })
           }
           val callback: ActionCallback = each.perform(findOrderEntriesContainingFile(file))
           callback.doWhenRejected(onFinish)

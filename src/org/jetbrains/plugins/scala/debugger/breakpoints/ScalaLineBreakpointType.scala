@@ -50,16 +50,14 @@ class ScalaLineBreakpointType extends JavaLineBreakpointType("scala-line", Scala
     if (document == null) return false
 
     var result: Boolean = false
-    val processor: Processor[PsiElement] = new Processor[PsiElement] {
-      override def process(e: PsiElement): Boolean = e match {
-        case ElementType(ScalaTokenTypes.kPACKAGE | ScalaTokenTypes.kIMPORT) => false
-        case ws: PsiWhiteSpace => true
-        case _ if PsiTreeUtil.getParentOfType(e, classOf[PsiComment]) != null => true
-        case _ if PsiTreeUtil.getParentOfType(e, classOf[ScExpression], classOf[ScConstructorPattern], classOf[ScInfixPattern], classOf[ScClass]) != null =>
-          result = true
-          false
-        case _ => true
-      }
+    val processor: Processor[PsiElement] = (e: PsiElement) => e match {
+      case ElementType(ScalaTokenTypes.kPACKAGE | ScalaTokenTypes.kIMPORT) => false
+      case ws: PsiWhiteSpace => true
+      case _ if PsiTreeUtil.getParentOfType(e, classOf[PsiComment]) != null => true
+      case _ if PsiTreeUtil.getParentOfType(e, classOf[ScExpression], classOf[ScConstructorPattern], classOf[ScInfixPattern], classOf[ScClass]) != null =>
+        result = true
+        false
+      case _ => true
     }
     XDebuggerUtil.getInstance.iterateLine(project, document, line, processor)
     result

@@ -106,17 +106,15 @@ class ScalaPluginVersionVerifierApplicationComponent extends ApplicationComponen
                       app.getMessageBus.syncPublisher(Notifications.TOPIC).register(Scala_Group, NotificationDisplayType.STICKY_BALLOON)
                     }
                     NotificationGroup.balloonGroup(Scala_Group)
-                    val notification = new Notification(Scala_Group, "Incompatible plugin detected", message, NotificationType.ERROR, new NotificationListener {
-                      def hyperlinkUpdate(notification: Notification, event: HyperlinkEvent) {
-                        notification.expire()
-                        val description = event.getDescription
-                        description match {
-                          case "Yes" =>
-                            PluginManagerCore.disablePlugin(plugin.getPluginId.getIdString)
-                            PluginManagerConfigurable.showRestartDialog()
-                          case "No"  => //do nothing it seems all is ok for the user
-                          case _     => //do nothing it seems all is ok for the user
-                        }
+                    val notification = new Notification(Scala_Group, "Incompatible plugin detected", message, NotificationType.ERROR, (notification: Notification, event: HyperlinkEvent) => {
+                      notification.expire()
+                      val description = event.getDescription
+                      description match {
+                        case "Yes" =>
+                          PluginManagerCore.disablePlugin(plugin.getPluginId.getIdString)
+                          PluginManagerConfigurable.showRestartDialog()
+                        case "No" => //do nothing it seems all is ok for the user
+                        case _ => //do nothing it seems all is ok for the user
                       }
                     })
 
@@ -144,13 +142,11 @@ class ScalaPluginVersionVerifierApplicationComponent extends ApplicationComponen
       }
       ScalaPluginUpdater.askUpdatePluginBranch()
     }
-    SwingUtilities.invokeLater(new Runnable {
-      def run() {
-        ScalaPluginUpdater.upgradeRepo()
-        checkVersion()
-        ScalaPluginUpdater.postCheckIdeaCompatibility()
-        ScalaPluginUpdater.setupReporter()
-      }
+    SwingUtilities.invokeLater(() => {
+      ScalaPluginUpdater.upgradeRepo()
+      checkVersion()
+      ScalaPluginUpdater.postCheckIdeaCompatibility()
+      ScalaPluginUpdater.setupReporter()
     })
   }
 

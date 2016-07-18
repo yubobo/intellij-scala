@@ -3,7 +3,6 @@ package org.jetbrains.plugins.scala.lang.completion.handlers
 import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.completion.{CompletionType, InsertHandler, InsertionContext}
 import com.intellij.codeInsight.lookup.LookupElement
-import com.intellij.openapi.util.Condition
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.{PsiClass, PsiDocumentManager, PsiFile}
 import org.jetbrains.plugins.scala.extensions._
@@ -15,7 +14,6 @@ import org.jetbrains.plugins.scala.lang.psi.api.expr.ScNewTemplateDefinition
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.templates.{ScExtendsBlock, ScTemplateBody, ScTemplateParents}
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ScClass, ScObject, ScTrait}
 import org.jetbrains.plugins.scala.lang.psi.impl.ScalaPsiElementFactory
-import org.jetbrains.plugins.scala.lang.psi.types.ScTypeExt
 import org.jetbrains.plugins.scala.overrideImplement.ScalaOIUtil
 
 /**
@@ -41,14 +39,10 @@ class ScalaConstructorInsertHandler extends InsertHandler[LookupElement] {
           document.insertString(endOffset, ".")
           endOffset += 1
           editor.getCaretModel.moveToOffset(endOffset)
-          context.setLaterRunnable(new Runnable {
-            def run() {
-              AutoPopupController.getInstance(context.getProject).scheduleAutoPopup(
-                context.getEditor, CompletionType.BASIC, new Condition[PsiFile] {
-                  def value(t: PsiFile): Boolean = t == context.getFile
-                }
-              )
-            }
+          context.setLaterRunnable(() => {
+            AutoPopupController.getInstance(context.getProject).scheduleAutoPopup(
+              context.getEditor, CompletionType.BASIC, (t: PsiFile) => t == context.getFile
+            )
           })
         }
       case item@ScalaLookupItem(clazz: PsiClass) =>
