@@ -192,14 +192,12 @@ lazy val sbtLaunchTestDownloader =
 
 // Testing keys and settings
 
-testOptions += Tests.Argument(TestFrameworks.JUnit)
-
 addCommandAlias("runPerfOptTests", s"testOnly -- --include-categories=$perfOptCategory")
 
 addCommandAlias("runSlowTests", s"testOnly -- --include-categories=$slowTestsCategory")
 
-addCommandAlias("runFastTests", s"; set testOptions += Tests.Argument(TestFrameworks.JUnit," + s""" "--exclude-categories=$slowTestsCategory", """ +
-                                            s""" "--exclude-categories=$perfOptCategory"); testOnly""")
+addCommandAlias("runFastTests", s"testOnly -- --exclude-categories=$slowTestsCategory " +
+                                            s"--exclude-categories=$perfOptCategory")
 
 lazy val setUpTestEnvironment = taskKey[Unit]("Set up proper environment for running tests")
 
