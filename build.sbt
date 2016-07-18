@@ -192,12 +192,14 @@ lazy val sbtLaunchTestDownloader =
 
 // Testing keys and settings
 
+testOptions += Tests.Argument(TestFrameworks.JUnit)
+
 addCommandAlias("runPerfOptTests", s"testOnly -- --include-categories=$perfOptCategory")
 
 addCommandAlias("runSlowTests", s"testOnly -- --include-categories=$slowTestsCategory")
 
-addCommandAlias("runFastTests", s"testOnly -- --exclude-categories=$slowTestsCategory " +
-                                            s"--exclude-categories=$perfOptCategory")
+addCommandAlias("runFastTests", s"; set testOptions += Tests.Argument(TestFrameworks.JUnit," + s""" "--exclude-categories=$slowTestsCategory", """ +
+                                            s""" "--exclude-categories=$perfOptCategory"); testOnly""")
 
 lazy val setUpTestEnvironment = taskKey[Unit]("Set up proper environment for running tests")
 
@@ -248,6 +250,8 @@ lazy val pluginPackagerCommunity =
           "lib/jps/compiler-interface-sources.jar"),
         Library(Dependencies.incrementalCompiler,
           "lib/jps/incremental-compiler.jar"),
+        Library(Dependencies.scalaLibrary211,
+          "lib/jps/scala-library-211.jar"),
         Library(Dependencies.sbtInterface,
           "lib/jps/sbt-interface.jar"),
         Library(Dependencies.bundledJline,
