@@ -136,7 +136,7 @@ trait ScTemplateDefinition extends ScNamedElement with PsiClass {
 
   def getTypeWithProjections(ctx: TypingContext, thisProjections: Boolean = false): TypeResult[ScType]
 
-  def members: Seq[ScMember] = extendsBlock.members
+  def members: Seq[ScMember] = extendsBlock.members ++ syntheticMembers
   def functions: Seq[ScFunction] = extendsBlock.functions
   def aliases: Seq[ScTypeAlias] = extendsBlock.aliases
 
@@ -159,6 +159,10 @@ trait ScTemplateDefinition extends ScNamedElement with PsiClass {
 
   @CachedInsidePsiElement(this, ModCount.getBlockModificationCount)
   def syntheticTypeDefinitions: Seq[ScTypeDefinition] = syntheticTypeDefinitionsImpl
+
+  def syntheticMembers: Seq[ScMember] = syntheticMembersImpl
+
+  def syntheticMembersImpl: Seq[ScMember] = Nil
 
   def syntheticTypeDefinitionsImpl: Seq[ScTypeDefinition] = Seq.empty
 
