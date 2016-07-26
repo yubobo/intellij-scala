@@ -284,8 +284,8 @@ trait ApplicationAnnotator {
   }
 
   private def formatSyntheticParams(parameters: Seq[Parameter]) = {
-    val parts = parameters.map {
-      case p => p.paramType.presentableText + (if(p.isRepeated) "*" else "")
+    val parts = parameters.map { p =>
+      p.paramType.presentableText + (if(p.isRepeated) "*" else "")
     }
     parenthesise(parts)
   }
